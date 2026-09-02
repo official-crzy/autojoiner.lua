@@ -58,6 +58,15 @@ nouse = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.Character
 
 local tradeFrame = playerGui.TradeApp.Frame
 local Fsys = require(game.ReplicatedStorage:WaitForChild("Fsys"))
+
+print("Fsys:", Fsys)
+print("Fsys.load:", Fsys and Fsys.load)
+
+local RouterClient = Fsys.load("RouterClient")
+
+print("RouterClient:", RouterClient)
+print("RouterClient.get:", RouterClient and RouterClient.get)
+
 local Loads = require(game.ReplicatedStorage.Fsys).load
 local RouterClient = Fsys.load("RouterClient")
 local AddItemRemote = RouterClient.get("TradeAPI/AddItemToOffer")
