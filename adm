@@ -58,7 +58,6 @@ nouse = game.Players.LocalPlayer.Character or game.Players.LocalPlayer.Character
 
 local tradeFrame = playerGui.TradeApp.Frame
 local Loads = require(game.ReplicatedStorage.Fsys).load
-local TradeAcceptOrDeclineRequest = RouterClient.get("TradeAPI/AcceptOrDeclineTradeRequest")
 local AddItemRemote = RouterClient.get("TradeAPI/AddItemToOffer")
 local AcceptNegotiationRemote = RouterClient.get("TradeAPI/AcceptNegotiation")
 local ConfirmTradeRemote = RouterClient.get("TradeAPI/ConfirmTrade")
