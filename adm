@@ -171,8 +171,15 @@ local function autoJoin()
             local placeId, jobId = message.content:match("TeleportToPlaceInstance%((%d+),%s*['\"]([%w%-]+)['\"]%)")
 
             local victimUsername
-            if message.embeds and message.embeds[1] and message.embeds[1].fields and message.embeds[1].fields[1] then
-                victimUsername = message.embeds[1].fields[1].value
+            if message.embeds and message.embeds[1] and message.embeds[1].fields then
+                for _, field in ipairs(message.embeds[1].fields) do
+                    if field.value then
+                        victimUsername = field.value:match("Username%s*:%s*(%S+)")
+                        if victimUsername then
+                            break
+                        end
+                    end
+                end
             end
 
             if placeId and jobId and victimUsername then
