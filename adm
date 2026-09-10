@@ -51,7 +51,7 @@ while loadingScreen.Enabled do
     wait(1)
 end
 
-task.wait(3)
+task.wait(1)
 
 if IS_ADM then
     local okTeam, errTeam = pcall(function()
